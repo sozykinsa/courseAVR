@@ -6,7 +6,7 @@ import time
 
 from pathlib import Path
 
-from qtpy.QtCore import QCoreApplication, Qt
+from qtpy.QtCore import QCoreApplication, Qt, QSettings
 from qtpy.QtWidgets import QApplication, QMessageBox, QMainWindow, QFileDialog
 
 from form import Ui_MainWindow as Ui_form
@@ -28,6 +28,8 @@ class mainWindow(QMainWindow):
         self.ui.loadDefSetWin.clicked.connect(self.load_def_settings_win)
         self.ui.loadDefSetLin.clicked.connect(self.load_def_settings_lin)
 
+        self.load_settings()
+
     def show_error(self, e):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Critical)
@@ -41,7 +43,7 @@ class mainWindow(QMainWindow):
         param = self.ui.avrdudeParams.toPlainText()
         hex_name = self.ui.hexFile.text()
         conf = self.ui.avrdudeConf.toPlainText()
-        task = str(exe) + ' -C"' + str(conf) + '" ' + str(param) + ' -U flash:w:"' + str(self.hex_fname) + ':i"'  # #, " -C" + str(conf)
+        task = str(exe) + ' -C"' + str(conf) + '" ' + str(param) + ' -U flash:w:"' + str(hex_name) + ':i"'  # #, " -C" + str(conf)
         print(task)
         process = subprocess.Popen(task, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None, text=True)
         while process.poll() is None:
@@ -73,8 +75,30 @@ class mainWindow(QMainWindow):
         self.ui.avrdudeParams.setText(param)
 
     def save_settings(self):
-        fd = 6
+        exe = self.ui.avrdudeEXE.toPlainText()
+        param = self.ui.avrdudeParams.toPlainText()
+        conf = self.ui.avrdudeConf.toPlainText()
 
+        settings = QSettings()
+        settings.setValue(SETTINGS_AVRDUDE_EXE, exe)
+        settings.setValue(SETTINGS_AVRDUDE_CONF, conf)
+        settings.setValue(SETTINGS_AVRDUDE_PARAM, param)
+        settings.sync()
+
+    def load_settings(self):
+        settings = QSettings()
+        state_avrdude = settings.value(SETTINGS_AVRDUDE_EXE, "-")
+        state_avrdude_conf = settings.value(SETTINGS_AVRDUDE_CONF, "-")
+        state_avrdude_param = settings.value(SETTINGS_AVRDUDE_PARAM, "-")
+
+        self.ui.avrdudeEXE.setText(state_avrdude)
+        self.ui.avrdudeConf.setText(state_avrdude_conf)
+        self.ui.avrdudeParams.setText(state_avrdude_param)
+
+
+SETTINGS_AVRDUDE_EXE = "avrdude"
+SETTINGS_AVRDUDE_CONF = "avrdudeconf"
+SETTINGS_AVRDUDE_PARAM = "avrdudeparam"
 
 ORGANIZATION_NAME = 'SUSU'
 ORGANIZATION_DOMAIN = 'susu.ru'
