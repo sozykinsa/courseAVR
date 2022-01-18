@@ -3,6 +3,8 @@ import os
 import subprocess
 import sys
 import time
+import glob
+import serial  # python -m pip install pyserial
 
 from pathlib import Path
 
@@ -18,6 +20,8 @@ class mainWindow(QMainWindow):
         self.ui = Ui_form()
         self.ui.setupUi(self)
         self.hex_fname = ""
+        self.ports = self.serial_ports()
+        print("Available com ports: ", self.ports)
 
     def setup_ui(self):
         # buttons
@@ -69,9 +73,11 @@ class mainWindow(QMainWindow):
         self.ui.avrdudeParams.setText(param)
 
     def load_def_settings_lin(self):
-        fname = "text3"
+        fname = "/home/sergey/Downloads/arduino-1.8.19-linux64/arduino-1.8.19/hardware/tools/avr/bin/avrdude"
         self.ui.avrdudeEXE.setText(fname)
-        param = "text4"
+        conf = r"/home/sergey/Downloads/arduino-1.8.19-linux64/arduino-1.8.19/hardware/tools/avr/etc/avrdude.conf"
+        self.ui.avrdudeConf.setText(conf)
+        param = "-v -patmega328p -carduino -P/dev/ttyUSB0 -b115200 -D"
         self.ui.avrdudeParams.setText(param)
 
     def save_settings(self):
@@ -94,6 +100,35 @@ class mainWindow(QMainWindow):
         self.ui.avrdudeEXE.setText(state_avrdude)
         self.ui.avrdudeConf.setText(state_avrdude_conf)
         self.ui.avrdudeParams.setText(state_avrdude_param)
+
+    @staticmethod
+    def serial_ports():
+        """ Lists serial port names
+
+            :raises EnvironmentError:
+                On unsupported or unknown platforms
+            :returns:
+                A list of the serial ports available on the system
+        """
+        if sys.platform.startswith('win'):
+            ports = ['COM%s' % (i + 1) for i in range(256)]
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            # this excludes your current terminal "/dev/tty"
+            ports = glob.glob('/dev/tty[A-Za-z]*')
+        elif sys.platform.startswith('darwin'):
+            ports = glob.glob('/dev/tty.*')
+        else:
+            raise EnvironmentError('Unsupported platform')
+
+        result = []
+        for port in ports:
+            try:
+                s = serial.Serial(port)
+                s.close()
+                result.append(port)
+            except (OSError, serial.SerialException):
+                pass
+        return result
 
 
 SETTINGS_AVRDUDE_EXE = "avrdude"
