@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 import os
+
+import os
+try:
+    if os.environ["XDG_SESSION_TYPE"] == "wayland":
+        os.environ["QT_QPA_PLATFORM"] = "wayland"
+except Exception as e:
+    """  """
+
 import subprocess
 import sys
-import time
 import glob
 import serial  # python -m pip install pyserial
-
-from pathlib import Path
 
 from qtpy.QtCore import QCoreApplication, Qt, QSettings
 from qtpy.QtWidgets import QApplication, QMessageBox, QMainWindow, QFileDialog
@@ -28,6 +33,7 @@ class mainWindow(QMainWindow):
         self.ui.programmButton.clicked.connect(self.programm)
         self.ui.selectAvrdude.clicked.connect(self.select_avr_dude)
         self.ui.selectAVRdude.clicked.connect(self.select_hex)
+        self.ui.selectAvrdudeConf.clicked.connect(self.select_conf)
         self.ui.saveSettings.clicked.connect(self.save_settings)
         self.ui.loadDefSetWin.clicked.connect(self.load_def_settings_win)
         self.ui.loadDefSetLin.clicked.connect(self.load_def_settings_lin)
@@ -58,6 +64,11 @@ class mainWindow(QMainWindow):
         fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
         if os.path.exists(fname):
             self.ui.avrdudeEXE.setText(fname)
+
+    def select_conf(self):
+        fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
+        if os.path.exists(fname):
+            self.ui.avrdudeConf.setText(fname)
 
     def select_hex(self):
         self.hex_fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
