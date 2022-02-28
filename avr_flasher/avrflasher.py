@@ -10,6 +10,7 @@ except Exception as e:
 
 import subprocess
 import sys
+import shlex
 import glob
 import serial  # python -m pip install pyserial
 
@@ -53,11 +54,15 @@ class mainWindow(QMainWindow):
         param = self.ui.avrdudeParams.toPlainText()
         hex_name = self.ui.hexFile.text()
         conf = self.ui.avrdudeConf.toPlainText()
-        task = str(exe) + ' -C"' + str(conf) + '" ' + str(param) + ' -U flash:w:"' + str(hex_name) + ':i"'  # #, " -C" + str(conf)
+        if sys.platform.startswith('win'):
+            task = str(exe) + ' -C"' + str(conf) + '" ' + str(param) + ' -U flash:w:"' + str(hex_name) + ':i"'
+        elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+            task = str(exe) + ' -C' + str(conf) + ' ' + str(param) + ' -U flash:w:' + str(hex_name) + ':i'
         print(task)
-        process = subprocess.Popen(task, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None, text=True)
+        process = subprocess.Popen(shlex.split(task), stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None,
+                                   text=True)
         while process.poll() is None:
-            output_line = str(process.stderr.readline())  # .stdout.readline())
+            output_line = str(process.stderr.readline())
             self.ui.textLog.appendPlainText(str(output_line).rstrip())
 
     def select_avr_dude(self):
@@ -71,7 +76,7 @@ class mainWindow(QMainWindow):
             self.ui.avrdudeConf.setText(fname)
 
     def select_hex(self):
-        self.hex_fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
+        self.hex_fname = QFileDialog.getOpenFileName(self, 'Open file', options=QFileDialog.DontUseNativeDialog)[0]
         if os.path.exists(self.hex_fname):
             self.ui.hexFile.setText(self.hex_fname)
 
@@ -84,11 +89,11 @@ class mainWindow(QMainWindow):
         self.ui.avrdudeParams.setText(param)
 
     def load_def_settings_lin(self):
-        fname = "/home/sergey/Downloads/arduino-1.8.19-linux64/arduino-1.8.19/hardware/tools/avr/bin/avrdude"
+        fname = "/home/anaconda/Downloads/arduino-1.8.19-linux64/arduino-1.8.19/hardware/tools/avr/bin/avrdude"
         self.ui.avrdudeEXE.setText(fname)
-        conf = r"/home/sergey/Downloads/arduino-1.8.19-linux64/arduino-1.8.19/hardware/tools/avr/etc/avrdude.conf"
+        conf = r"/home/anaconda/Downloads/arduino-1.8.19-linux64/arduino-1.8.19/hardware/tools/avr/etc/avrdude.conf"
         self.ui.avrdudeConf.setText(conf)
-        param = "-v -patmega328p -carduino -P/dev/ttyUSB0 -b115200 -D"
+        param = "-v -patmega328p -carduino -P/dev/ttyUSB0 -b57600 -D"
         self.ui.avrdudeParams.setText(param)
 
     def save_settings(self):
@@ -124,7 +129,6 @@ class mainWindow(QMainWindow):
         if sys.platform.startswith('win'):
             ports = ['COM%s' % (i + 1) for i in range(256)]
         elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-            # this excludes your current terminal "/dev/tty"
             ports = glob.glob('/dev/tty[A-Za-z]*')
         elif sys.platform.startswith('darwin'):
             ports = glob.glob('/dev/tty.*')
