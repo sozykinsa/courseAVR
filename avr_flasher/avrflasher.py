@@ -57,10 +57,9 @@ class mainWindow(QMainWindow):
         if sys.platform.startswith('win'):
             task = str(exe) + ' -C"' + str(conf) + '" ' + str(param) + ' -U flash:w:"' + str(hex_name) + ':i"'
         elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-            task = str(exe) + ' -C' + str(conf) + ' ' + str(param) + ' -U flash:w:' + str(hex_name) + ':i'
+            task = shlex.split(str(exe) + ' -C' + str(conf) + ' ' + str(param) + ' -U flash:w:' + str(hex_name) + ':i')
         print(task)
-        process = subprocess.Popen(shlex.split(task), stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None,
-                                   text=True)
+        process = subprocess.Popen(task, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None, text=True)
         while process.poll() is None:
             output_line = str(process.stderr.readline())
             self.ui.textLog.appendPlainText(str(output_line).rstrip())
