@@ -65,12 +65,12 @@ class mainWindow(QMainWindow):
             self.ui.textLog.appendPlainText(str(output_line).rstrip())
 
     def select_avr_dude(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
+        fname = QFileDialog.getOpenFileName(self, 'Open file', options=QFileDialog.DontUseNativeDialog)[0]
         if os.path.exists(fname):
             self.ui.avrdudeEXE.setText(fname)
 
     def select_conf(self):
-        fname = QFileDialog.getOpenFileName(self, 'Open file')[0]
+        fname = QFileDialog.getOpenFileName(self, 'Open file', options=QFileDialog.DontUseNativeDialog)[0]
         if os.path.exists(fname):
             self.ui.avrdudeConf.setText(fname)
 
